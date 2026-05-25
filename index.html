@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>我的第一個 Vue Todo List 練習作品</title>
+</head>
+<body>
+  <div id="app">
+    <h1>{{ title }}</h1>
+
+    <input v-model="name" placeholder="輸入你的名字" />
+    <p>你好，{{ name }}</p>
+
+    <input v-model="newTodo" @keyup.enter="addTodo" placeholder="新增代辦事項">
+    <button @click="addTodo">新增</button>
+    <p>目前共有{{ todo.length }}件事</p>
+    <p>還有{{ remainingCount }}件事未完成</p>
+    <button @click="filter = 'all'">全部</button>
+    <button @click="filter = 'active'">未完成</button>
+    <button @click="filter = 'completed'">已完成</button>
+    <ul>
+  <li v-for="item in filterTodos" :key="item.id">
+    <input type="checkbox" v-model="item.done" />
+    <span v-if="!item.editing" :class="{ completed: item.done }">
+      {{ item.text }}
+    </span>
+    <input v-else v-model="item.text" @keyup.enter="finishEdit(item)"/>
+    <button @click="item.editing = true">編輯</button>
+    <button @click="finishEdit(item)">完成</button>
+    <button @click="deleteTodo(item.id)">刪除</button>
+  </li>
+</ul>
+  </div>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+  <script>
+    const { createApp } = Vue
+
+createApp({
+  data() {
+    return {
+      title: '我的第一個 Vue 頁面',
+      name: '',
+      newTodo: '',
+      filter: 'all',
+      todo: [
+        { id: 1, text: '買菜', done: false,editing: false },
+        { id: 2, text: '洗衣服', done: false,editing: false },
+        { id: 3, text: '寫程式', done: false,editing: false }
+      ]
+    }
+  },
+
+  computed: {
+    filterTodos() {
+      if (this.filter === 'active') {
+        return this.todo.filter(item => !item.done)
+      } else if (this.filter === 'completed') {
+        return this.todo.filter(item => item.done)
+      } else {
+        return this.todo
+      }
+    },
+    remainingCount() {
+      return this.todo.filter(item => !item.done).length
+    }
+  },
+
+  methods: {
+    addTodo() {
+      if (this.newTodo.trim() !== '') {
+        this.todo.push({
+          id: Date.now(),
+          text: this.newTodo,
+          done: false,
+          editing: false
+        })
+
+        this.newTodo = ''
+      }
+    },
+
+    deleteTodo(id) {
+      this.todo = this.todo.filter(item => item.id !== id)
+    },
+
+    reset() {
+      this.todo = []
+    },
+    clearCompleted() {
+      this.todo = this.todo.filter(item => !item.done)
+    },
+    finishEdit(item) {
+      item.text = item.text.trim()
+      if (item.text === '') {
+        this.deleteTodo(item.id)
+      return
+  }
+
+  item.editing = false
+}
+  },
+
+  mounted() {
+    const savedTodos = localStorage.getItem('todos')
+
+    if (savedTodos) {
+      this.todo = JSON.parse(savedTodos)
+    }
+  },
+
+  watch: {
+    todo: {
+      handler(newTodos) {
+        localStorage.setItem('todos', JSON.stringify(newTodos))
+      },
+      deep: true
+    }
+  }
+}).mount('#app')
+  </script>
+</body>
+</html>
+
+<style>
+  body {
+    font-family: Arial, "Microsoft JhengHei", sans-serif;
+    background: #f5f5f5;
+    padding: 40px;
+  }
+
+  #app {
+    max-width: 520px;
+    margin: 0 auto;
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  }
+
+  h1 {
+    margin-top: 0;
+  }
+
+  input[type="text"],
+  input:not([type]) {
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+  }
+
+  button {
+    margin-left: 6px;
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background: #f0f0f0;
+  }
+
+  ul {
+    padding-left: 0;
+  }
+
+  li {
+    list-style: none;
+    margin-bottom: 10px;
+    padding: 10px;
+    background: #fafafa;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  li span {
+    flex: 1;
+  }
+
+  .completed {
+    text-decoration: line-through;
+    color: gray;
+  }
+</style>
